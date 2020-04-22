@@ -10,33 +10,25 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
-        <activity android:name=".lyActivity1">
+        <activity android:name=".lyActivity1" />
+        <activity android:name=".lyActivity2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity android:name=".lyActivity2"><intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-        </activity>
-
-
-
 
         <receiver
             android:name=".MyReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
-                <action android:name="com.inspur.broadcast">
-
-                </action>
+                <action android:name="com.inspur.broadcast" />
             </intent-filter>
         </receiver>
 
-
+        <activity android:name=".lyActivity3"></activity>
     </application>
 
 </manifest>

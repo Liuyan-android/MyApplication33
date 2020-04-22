@@ -1,10 +1,12 @@
 package cn.edu.sdwu.android02.classroom.sn170507180102;
 
+import android.content.Intent;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 public class lyActivity1 extends AppCompatActivity {
     private  Integer count;//点击按键的计数器
@@ -15,6 +17,11 @@ public class lyActivity1 extends AppCompatActivity {
         Log.i(lyActivity1.class.toString(),"onCreat");
         setContentView(R.layout.layout_1);
         count=0;
+        //接收数据
+        Intent intent=getIntent();
+        String text=intent.getStringExtra("text");
+        TextView textView=(TextView)findViewById(R.id.ly1_tv);
+        textView.setText(text);
 
     }
     public  void  finishClick(View view){
