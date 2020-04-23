@@ -2,6 +2,7 @@ package cn.edu.sdwu.android02.classroom.sn170507180102;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -48,6 +49,15 @@ public class lyActivity2 extends AppCompatActivity {
                 Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
             }
 
+        }else if (requestCode==102){
+            //在联系人列表返回的结果
+            if (resultCode==RESULT_OK){
+                String content=data.getDataString();
+                Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
+
+            }else {
+                Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
+            }
         }
     }
     public void web(View view){
@@ -55,5 +65,33 @@ public class lyActivity2 extends AppCompatActivity {
         Intent intent=new Intent(Intent.ACTION_VIEW, Uri.parse("http://baidu,com"));
         startActivity(intent);
     }
+    public void contactsList(View view){
+        Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("content://contacts/people/"));
+        startActivity(intent);
+    }
+    public void  contactsDetail(View view){
+        Intent intent=new Intent(Intent.ACTION_EDIT,Uri.parse("content://contacts/people/1"));
+        startActivity(intent);
+    }
+    public void showMap(View view){
+        Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("geo:50.123,7.1434"));
+        startActivity(intent);
+    }
+    public void showPhoto(View view){
+        Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("content://media/external/images/media/"));
+        startActivity(intent);
+    }
+    public  void  pickContact(View view){
+        Intent intent=new Intent(Intent.ACTION_PICK);
+        intent.setData(ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent,102);
+    }
+    public  void implicitStart(View view){
+        Intent intent=new Intent("com.inspur.action2");
+        intent.setData(Uri.parse("abc://inspur.com"));
+        startActivity(intent);
+    }
+
+
 }
 

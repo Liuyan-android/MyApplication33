@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cn.edu.sdwu.android02.classroom.sn170507180102">
 
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,14 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
-        <activity android:name=".lyActivity1" />
-        <activity android:name=".lyActivity2">
+        <activity android:name=".lyActivity1">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.inspur.action2" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="inspur.com"
+                    android:scheme="abc" />
             </intent-filter>
         </activity>
+        <activity android:name=".lyActivity2"></activity>
 
         <receiver
             android:name=".MyReceiver"
@@ -28,7 +34,25 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".lyActivity3"></activity>
+        <activity android:name=".lyActivity3" />
+
+        <service
+            android:name=".MyService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".lyActivity4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".MyService2"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
