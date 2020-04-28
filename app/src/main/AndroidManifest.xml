@@ -3,6 +3,8 @@
     package="cn.edu.sdwu.android02.classroom.sn170507180102">
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -53,14 +55,14 @@
             android:exported="true" />
 
         <activity android:name=".ly12Activity2">
+
+        </activity>
+        <activity android:name=".ly13Activity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".ly13Activity">
-
         </activity>
     </application>
 

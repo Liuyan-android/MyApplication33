@@ -12,5 +12,22 @@
         android:onClick="write"
         android:text="writeFile"
         android:layout_height="wrap_content" />
+    <Button
+        android:layout_width="wrap_content"
+        android:onClick="writeS"
+        android:text="writeSd"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:onClick="readSd"
+        android:text="readSd"
+        android:layout_height="wrap_content" />
+    <Button
+        android:layout_width="wrap_content"
+        android:onClick="readRaw"
+        android:text="readRaw"
+        android:layout_height="wrap_content" />
+
 
 </LinearLayout>
