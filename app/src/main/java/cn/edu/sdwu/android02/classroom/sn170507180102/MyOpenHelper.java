@@ -28,6 +28,7 @@ public class MyOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+//当构造方法中指定的版本号与手机已有数据版本号更新的时候，调用本方法
+        sqLiteDatabase.execSQL("alter table student column stuadd text");
     }
 }
