@@ -4,13 +4,18 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
+import android.media.Image;
+import android.media.ImageReader;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +26,12 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ly16Activity extends AppCompatActivity {
@@ -32,7 +42,34 @@ public class ly16Activity extends AppCompatActivity {
     private CaptureRequest.Builder captureRequestBuilder;//请求的构造器
     private  CaptureRequest previewRequest;
     private CameraCaptureSession cameraCaptureSession;
-
+    private ImageReader imageReader;//接收相机生成的静态图像
+    public void takephoto(View view){
+        //点击快门生成静态图像
+        if(cameraDevice!=null){
+            //使用Builder,创建请求
+            try {
+                CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+           builder.addTarget(imageReader.getSurface());
+                //停止原来的请求，停止连续取景
+                cameraCaptureSession.stopRepeating();
+                //捕获静态图像
+                cameraCaptureSession.capture(builder.build(), new CameraCaptureSession.CaptureCallback() {
+                    @Override
+                    public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                      //捕获完成后，恢复连续取景
+                        try {
+                            session.setRepeatingRequest(previewRequest, null, null);
+                        }catch (Exception e){
+                            Log.e(ly16Activity.class.toString(),e.toString());
+                        }
+                    }
+                },null);
+            }catch (Exception e){
+                Log.e(ly16Activity.class.toString(),e.toString());
+            }
+        }
+    }
+@Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
@@ -40,8 +77,7 @@ public class ly16Activity extends AppCompatActivity {
             //判断当前用户是否授权过
             int result = checkSelfPermission(Manifest.permission.CAMERA);
             if (result == PackageManager.PERMISSION_GRANTED) {
-                callphone();
-
+               setCameraLayout();
             } else {
                 requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 104);
             }
@@ -58,30 +94,64 @@ public class ly16Activity extends AppCompatActivity {
                     //创建一个捕捉请求CaptureRequest
                     captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                     captureRequestBuilder.addTarget(surface);//指定视频输出的位置
+
+
+                    imageReader=ImageReader.newInstance(1024,768, ImageFormat.JPEG,2);
+                    imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+                        @Override
+                        public void onImageAvailable(ImageReader imageReader) {
+                            //当照片数据可用时，激发该方法
+                            //获取捕获的照片数据
+                            Image image= imageReader.acquireNextImage();
+                            ByteBuffer buffer= image.getPlanes()[0].getBuffer();
+                            byte[] bytes=new byte[buffer.remaining()];
+                            buffer.get(bytes);
+                            //写文件
+                            File file=new File(Environment.getExternalStorageDirectory(),"abcd.jpg");
+                            FileOutputStream outputStream=null;
+                            try{
+                                outputStream=new FileOutputStream(file);
+                                outputStream.write(bytes);
+                                Toast.makeText(ly16Activity.this,"save:"+file,Toast.LENGTH_LONG).show();
+                            }catch (Exception e){
+                                Log.e(ly16Activity.class.toString(), e.toString());
+                            }finally {
+                                try{
+                                    outputStream.flush();
+                                    outputStream.close();
+                                }catch (Exception ee){
+                                   Log.e(ly16Activity.class.toString(), ee.toString()) ;
+                                }
+                            }
+
+                        }
+                    },null);
                     //创建一个相机捕捉会话
                     //参数1代表后续预览或拍照使用的组件
                     //参数2代表的是监听器，创建会话完成后执行的方法
-                    cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+                    cameraDevice.createCaptureSession(Arrays.asList(surface,imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
 
-                        //创建完成后，我们可以在参数中得到会话的对象
+                            //创建完成后，我们可以在参数中得到会话的对象
                             //开始显示相机的预览
-                            ly16Activity.this.cameraCaptureSession=cameraCaptureSession;
+                            ly16Activity.this.cameraCaptureSession = cameraCaptureSession;
                             try {
                                 previewRequest = captureRequestBuilder.build();
-                               //在会话中发出重复请求，进行预览(捕捉连续的图像）
+                                //在会话中发出重复请求，进行预览(捕捉连续的图像）
                                 cameraCaptureSession.setRepeatingRequest(previewRequest, null, null);
-                            }catch (Exception e){
+                            } catch (Exception e) {
+                                Log.e(ly16Activity.class.toString(),e.toString());
 
                             }
+
                         }
 
                         @Override
                         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
 
                         }
-                    }, null);
+                    },null);
                 } catch (Exception e) {
 
                 }
@@ -90,23 +160,25 @@ public class ly16Activity extends AppCompatActivity {
 
             @Override
             public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-                ly16Activity.this.cameraDevice = null;
+                ly16Activity.this.cameraDevice=null;
             }
 
             @Override
-            public void onError(@NonNull CameraDevice cameraDevice, @IntDef(value = {CameraDevice.StateCallback.ERROR_CAMERA_IN_USE, CameraDevice.StateCallback.ERROR_MAX_CAMERAS_IN_USE, CameraDevice.StateCallback.ERROR_CAMERA_DISABLED, CameraDevice.StateCallback.ERROR_CAMERA_DEVICE, CameraDevice.StateCallback.ERROR_CAMERA_SERVICE}) int i) {
+            public void onError(@NonNull CameraDevice cameraDevice, int i) {
 
             }
+        };
+    }
 
 
 
 
-        }
+
         private void openCamera(int width,int height){
             //使用getsystemservice得到相机管理器
-            CameraManager cameraManager=(CameraManager) getSystemService(CAMERA_SERVICE);
+            CameraManager cameraManager=(CameraManager)getSystemService(CAMERA_SERVICE);
             try{
-                cameraManager.openCamera("0"，stateCallback,null);//0代表后置，1代表前置
+                cameraManager.openCamera("0",stateCallback,null);//0代表后置，1代表前置
             }catch (Exception e){
                 Log.e(ly16Activity.class.toString(),e.toString());
             }
@@ -156,6 +228,11 @@ if (result== PackageManager.PERMISSION_GRANTED){
 }
         }
     }
+    public  void  chgOri(View view){
+        //改变屏幕的方向
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
+        // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
+    }
     public  void  sms(View view){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             //判断当前用户是否授权过
@@ -169,34 +246,31 @@ if (result== PackageManager.PERMISSION_GRANTED){
         }
 
     }
-    public  void  chgOri(View view){
-        //改变屏幕的方向
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
-       // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
-    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode==101){
-            if (grantResults[0]==PackageManager.PERMISSION_GRANTED){
+        if (requestCode==101) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 callphone();
 
             }
+        }
             if (requestCode==102){
                 if (grantResults[0]==PackageManager.PERMISSION_GRANTED){
                     sendSms();
                 }
             }
-            if (requestCode==102) {
+            if (requestCode==104) {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    sendSms();
+                    setCameraLayout();
                 }
             }
         }
-    }
+
     private  void sendSms(){
         SmsManager smsManager=SmsManager.getDefault();
-        smsManager.sendTextMessage("13395311130","13399997777","short seng message",null,null);
+        smsManager.sendTextMessage("13395311130","13399997777","short message test",null,null);
     }
     private  void callphone(){
         Intent intent=new Intent(Intent.ACTION_CALL, Uri.parse("tel://13999998888"));
