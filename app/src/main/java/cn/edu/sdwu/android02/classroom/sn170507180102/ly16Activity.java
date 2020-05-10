@@ -65,7 +65,7 @@ public class ly16Activity extends AppCompatActivity {
                     }
                 },null);
             }catch (Exception e){
-                Log.e(ly16Activity.class.toString(),e.toString());
+                Log.e(ly16Activity.class.toString(),e.toString())  ;
             }
         }
     }
